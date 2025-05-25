@@ -85,6 +85,9 @@ rm -f /usr/share/ironic/ironic-dist.conf
 # add ironic to apache group
 usermod -aG ironic apache
 
+#(jamesdenton) install staging drivers
+python3.12 -m pip install https://opendev.org/x/ironic-staging-drivers
+
 # apply patches if present #
 if [[ -n "${PATCH_LIST:-}" ]]; then
     if [[ -s "/tmp/${PATCH_LIST}" ]]; then
