@@ -39,6 +39,11 @@ if [[ ! -s "${UPPER_CONSTRAINTS_PATH}" ]]; then
     curl -L https://releases.openstack.org/constraints/upper/master -o "${UPPER_CONSTRAINTS_PATH}"
 fi
 
+# (jamesdenton) Install openwsman for ironic staging drivers
+dnf --enablerepo=crb install -y openwsman-python3
+# (jamesdenton) Install other utilities
+dnf install -y iputils
+
 # NOTE(elfosardo): install dependencies constrained
 python3.12 -m pip install jinja2 pyinotify -c "${UPPER_CONSTRAINTS_PATH}"
 
@@ -57,6 +62,9 @@ python3.12 -m pip install --no-cache-dir --ignore-installed --prefix /usr -r "${
 mkdir -p /var/log/ironic /var/lib/ironic
 getent group ironic > /dev/null || groupadd -r ironic -g "${IRONIC_GID}"
 getent passwd ironic > /dev/null || useradd -r -g ironic -u "${IRONIC_UID}" -s /sbin/nologin ironic -d /var/lib/ironic
+
+#(jamesdenton) install staging drivers
+python3.12 -m pip install git+https://opendev.org/x/ironic-staging-drivers
 
 # clean installed build dependencies
 dnf remove -y "${BUILD_DEPS[@]}"
@@ -84,9 +92,6 @@ rm -f /usr/share/ironic/ironic-dist.conf
 
 # add ironic to apache group
 usermod -aG ironic apache
-
-#(jamesdenton) install staging drivers
-python3.12 -m pip install https://opendev.org/x/ironic-staging-drivers
 
 # apply patches if present #
 if [[ -n "${PATCH_LIST:-}" ]]; then
